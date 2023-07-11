@@ -81,9 +81,10 @@ uint_least64_t decode(const uint_least8_t* data)
   return res;
 }
 
-void encode(uint_least8_t* data, uint_least64_t in, size_t nb)
+void encode(uint_least8_t* data, const uint_least64_t in, const size_t nb)
 {
-  if (nb == 0) return;
+  if (nb == 0)
+    return;
 
   data[0] = ((nb - 1) & 0x07) << 5;
 
@@ -94,8 +95,6 @@ void encode(uint_least8_t* data, uint_least64_t in, size_t nb)
     data[i    ] |= cb & 0x1f;
     data[i + 1]  = cb & 0xe0;
   }
-
-  return;
 }
 
 
