@@ -81,7 +81,7 @@ uint_least64_t decode(const uint_least8_t* data)
   for (size_t i = 0; i <= nb; ++i)
   {
     res <<= 8;
-    res  |= (data[i] & 0x0f) | (data[i] & 0xf0);
+    res  |= (data[i] & 0x0f) | (data[i + 1] & 0xf0);
   }
 
   return res;
