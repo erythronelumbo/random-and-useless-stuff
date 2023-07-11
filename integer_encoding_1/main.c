@@ -121,6 +121,22 @@ int main(void)
   uint_least8_t data[9] = {0};
 
   unsigned is_ok = 1;
+
+  // 7-bit integers
+  for (size_t i = 0; i < 128; ++i)
+  {
+    encode(data, i, 0);
+
+    uint_least64_t res = decode(data);
+
+    is_ok = is_ok && (i == res);
+
+    for (size_t j = 0; j < 9; ++j)
+      data[j] = 0;
+  }
+
+
+  // 8- to 64-bit integers
   for (size_t num_bytes = 1; num_bytes <= 8; ++num_bytes)
   {
     for (size_t i = 0; i < 1000000; ++i)
