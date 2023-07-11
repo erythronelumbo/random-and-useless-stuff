@@ -1,8 +1,7 @@
 /**
- * Another experimental (?) scheme for encoding integers up to 64 bits
- * (8 bytes), although it can be adapted to encode bigger integers.
- *
- * The encoded integers are in big-endian format.
+ * Another experimental (?) scheme for encoding integers (in big-endian format)
+ * up to 64 bits (8 bytes), although it can be adapted to encode bigger
+ * integers.
  *
  * ```
  * [ 0|x6|x5|x4|x3|x2|x1|x0]
@@ -71,13 +70,18 @@
 
 uint_least64_t decode(const uint_least8_t* data)
 {
+  if (!(data[0] & 0x80))
+  {
+    return data[0] & 0x7f;
+  }
+
   uint_least64_t res = 0;
-  uint_least64_t nb  = data[0] >> 5;
+  size_t         nb = (data[0] >> 4) & 0x7;
 
   for (size_t i = 0; i <= nb; ++i)
   {
     res <<= 8;
-    res  |= (data[i] & 0x1f) | (data[i + 1] & 0xe0);
+    res  |= (data[i] & 0x0f) | (data[i] & 0xf0);
   }
 
   return res;
@@ -86,16 +90,22 @@ uint_least64_t decode(const uint_least8_t* data)
 void encode(uint_least8_t* data, const uint_least64_t in, const size_t nb)
 {
   if (nb == 0)
-    return;
-
-  data[0] = ((nb - 1) & 0x07) << 5;
-
-  for (size_t i = 0; i < nb; ++i)
   {
-    uint_least8_t cb = in >> ((nb - 1 - i) << 3);
+    // Stores a 7-bit integer
+    data[0] = in & 0x7f;
+  }
+  else
+  {
+    // [ 1|N2|N1|N0|..|..|..|..]
+    data[0] = 0x80 | (((nb - 1) & 0x07) << 4);
 
-    data[i    ] |= cb & 0x1f;
-    data[i + 1]  = cb & 0xe0;
+    for (size_t i = 0; i < nb; ++i)
+    {
+      uint_least8_t cb = in >> ((nb - 1 - i) << 3);
+
+      data[i    ] |= cb & 0x0f;
+      data[i + 1]  = cb & 0xf0;
+    }
   }
 }
 
