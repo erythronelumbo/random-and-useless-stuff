@@ -178,8 +178,14 @@ static const char* bools[2] = {"FAILED", "OK"};
 
 int main(void)
 {
-  printf("CLZ test: %s\n", bools[test_clz()]);
-  printf("CTZ test: %s\n", bools[test_ctz()]);
+  size_t res_clz = test_clz();
+  size_t res_ctz = test_ctz();
 
-  return EXIT_SUCCESS;
+  printf(
+    "CLZ test: %s\n"
+    "CTZ test: %s\n",
+    bools[res_clz], bools[res_ctz]
+  );
+
+  return (res_ctz && res_clz) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
