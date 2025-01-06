@@ -43,7 +43,7 @@ uint_least32_t string_to_int(
   res_sign = (res_sign + res_sign) - 1;
 
   // Advances if a sign is found
-  str += (cc == '+' || cc == '-');
+  str += (cc == '+') | (cc == '-');
 
   if (base == 0)
   {
@@ -51,19 +51,19 @@ uint_least32_t string_to_int(
     base = (
       (
         (8 + ((*str != '0') << 1)) <<
-        (cc_aux == 'X' || cc_aux == 'x')
+        ((cc_aux == 'X') | (cc_aux == 'x'))
       ) >>
-      ((cc_aux == 'B' || cc_aux == 'b') << 1)
+      (((cc_aux == 'B') | (cc_aux == 'b')) << 1)
     );
   }
 
   // Discards the "0x"/"0X"/"0b"/"0B" prefix
   cc   = *str;
-  str += ((base == 2 || base == 16) && cc == '0');
+  str += ((base == 2) | (base == 16)) & (cc == '0');
   cc   = *str;
   str += (
-    ((base == 16) && (cc == 'X' || cc == 'x')) ||
-    ((base ==  2) && (cc == 'B' || cc == 'b'))
+    ((base == 16) & ((cc == 'X') | (cc == 'x'))) |
+    ((base ==  2) & ((cc == 'B') | (cc == 'b')))
   );
 
   size_t sl = strlen(str);
@@ -77,10 +77,10 @@ uint_least32_t string_to_int(
   {
     while (sl-- && has_valid_digits)
     {
-      cc               = *str++;
-      curr_digit       = cc - '0';
-      has_valid_digits = (has_valid_digits && (curr_digit < base));
-      res_aux          = base*res_aux - (int_least32_t)curr_digit;
+      cc                = *str++;
+      curr_digit        = cc - '0';
+      has_valid_digits &= (curr_digit < base);
+      res_aux           = base*res_aux - (int_least32_t)curr_digit;
     }
   }
   else
@@ -88,14 +88,14 @@ uint_least32_t string_to_int(
     while (sl-- && has_valid_digits)
     {
       cc         = *str++;
-      is_uc      = (cc >= 'A' && cc <= 'Z');
-      is_lc      = (cc >= 'a' && cc <= 'z');
+      is_uc      = (cc >= 'A') & (cc <= 'Z');
+      is_lc      = (cc >= 'a') & (cc <= 'z');
       curr_digit = (
-        (cc + 10*(is_uc || is_lc)) -
+        (cc + 10*(is_uc | is_lc)) -
         ('0' + (('A' - '0')*is_uc + ('a' - '0')*is_lc))
       );
-      has_valid_digits = (has_valid_digits && (curr_digit < base));
-      res_aux          = base*res_aux - (int_least32_t)curr_digit;
+      has_valid_digits &= (curr_digit < base);
+      res_aux           = base*res_aux - (int_least32_t)curr_digit;
     }
   }
 
@@ -111,56 +111,56 @@ int main(void)
   int_least32_t  result = 0;
   uint_least32_t ok     = 1;
 
-  ok = ok && string_to_int(&result, "0", 0);
-  ok = ok && (result == 0);
-  ok = ok && string_to_int(&result, "00", 0);
-  ok = ok && (result == 0);
-  ok = ok && string_to_int(&result, "000", 0);
-  ok = ok && (result == 0);
-  ok = ok && string_to_int(&result, "0000", 0);
-  ok = ok && (result == 0);
+  ok &= string_to_int(&result, "0", 0);
+  ok &= (result == 0);
+  ok &= string_to_int(&result, "00", 0);
+  ok &= (result == 0);
+  ok &= string_to_int(&result, "000", 0);
+  ok &= (result == 0);
+  ok &= string_to_int(&result, "0000", 0);
+  ok &= (result == 0);
 
-  ok = ok && string_to_int(&result, "0b00001001", 0);
-  ok = ok && (result == 9);
-  ok = ok && string_to_int(&result, "0B1110", 0);
-  ok = ok && (result == 14);
-  ok = ok && string_to_int(&result, "+0B1110", 0);
-  ok = ok && (result == 14);
-  ok = ok && string_to_int(&result, "-0b1110", 0);
-  ok = ok && (result == -14);
+  ok &= string_to_int(&result, "0b00001001", 0);
+  ok &= (result == 9);
+  ok &= string_to_int(&result, "0B1110", 0);
+  ok &= (result == 14);
+  ok &= string_to_int(&result, "+0B1110", 0);
+  ok &= (result == 14);
+  ok &= string_to_int(&result, "-0b1110", 0);
+  ok &= (result == -14);
 
-  ok = ok && string_to_int(&result, "01", 0);
-  ok = ok && (result == 01);
-  ok = ok && string_to_int(&result, "-0175", 0);
-  ok = ok && (result == -0175);
-  ok = ok && string_to_int(&result, "+040", 0);
-  ok = ok && (result == +040);
+  ok &= string_to_int(&result, "01", 0);
+  ok &= (result == 01);
+  ok &= string_to_int(&result, "-0175", 0);
+  ok &= (result == -0175);
+  ok &= string_to_int(&result, "+040", 0);
+  ok &= (result == +040);
 
-  ok = ok && string_to_int(&result, "98501234", 0);
-  ok = ok && (result == 98501234);
-  ok = ok && string_to_int(&result, "+8432810", 0);
-  ok = ok && (result == +8432810);
-  ok = ok && string_to_int(&result, "-5067891", 0);
-  ok = ok && (result == -5067891);
+  ok &= string_to_int(&result, "98501234", 0);
+  ok &= (result == 98501234);
+  ok &= string_to_int(&result, "+8432810", 0);
+  ok &= (result == +8432810);
+  ok &= string_to_int(&result, "-5067891", 0);
+  ok &= (result == -5067891);
 
-  ok = ok && string_to_int(&result, "0xbada55", 0);
-  ok = ok && (result == 0xbada55);
-  ok = ok && string_to_int(&result, "-0X600dBeef", 0);
-  ok = ok && (result == -0X600dBeef);
+  ok &= string_to_int(&result, "0xbada55", 0);
+  ok &= (result == 0xbada55);
+  ok &= string_to_int(&result, "-0X600dBeef", 0);
+  ok &= (result == -0X600dBeef);
 
   // These are supposed to fail
-  ok = ok && !string_to_int(&result, "-0b", 0);
-  ok = ok && !string_to_int(&result, "0b", 0);
-  ok = ok && !string_to_int(&result, "0x", 0);
-  ok = ok && !string_to_int(&result, "0B", 0);
-  ok = ok && !string_to_int(&result, "0X", 0);
-  ok = ok && !string_to_int(&result, "0bB", 0);
-  ok = ok && !string_to_int(&result, "0xX", 0);
-  ok = ok && !string_to_int(&result, "*_-_*", 0);
-  ok = ok && !string_to_int(NULL, "-567890", 0);
-  ok = ok && !string_to_int(&result, "-567890", 8);
-  ok = ok && !string_to_int(&result, NULL, 0);
-  ok = ok && !string_to_int(NULL, NULL, 100);
+  ok &= !string_to_int(&result, "-0b", 0);
+  ok &= !string_to_int(&result, "0b", 0);
+  ok &= !string_to_int(&result, "0x", 0);
+  ok &= !string_to_int(&result, "0B", 0);
+  ok &= !string_to_int(&result, "0X", 0);
+  ok &= !string_to_int(&result, "0bB", 0);
+  ok &= !string_to_int(&result, "0xX", 0);
+  ok &= !string_to_int(&result, "*_-_*", 0);
+  ok &= !string_to_int(NULL, "-567890", 0);
+  ok &= !string_to_int(&result, "-567890", 8);
+  ok &= !string_to_int(&result, NULL, 0);
+  ok &= !string_to_int(NULL, NULL, 100);
 
   puts(ok ? "OK." : "Failed.");
 
